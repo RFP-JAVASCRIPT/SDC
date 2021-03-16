@@ -12,7 +12,7 @@ const test = () => {
     if (err) {
       return console.error(`Can't get client`, err);
     } else {
-      console.log('Connected to pool succesfully', client);
+      console.log('Connected to pool succesfully');
       release()
       console.log('Client released')
     }
