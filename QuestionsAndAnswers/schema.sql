@@ -1,0 +1,31 @@
+DROP TABLE IF EXISTS questions CASCADE;
+DROP TABLE IF EXISTS answers CASCADE;
+DROP TABLE IF EXISTS photos;
+
+CREATE TABLE questions (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER NOT NULL,
+  body VARCHAR NOT NULL,
+  date_written DATE NOT NULL,
+  asker_name VARCHAR NOT NULL,
+  asker_email VARCHAR NOT NULL,
+  reported BOOLEAN NOT NULL,
+  helpful INTEGER NOT NULL
+);
+
+CREATE TABLE answers (
+  id SERIAL PRIMARY KEY,
+  question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  body VARCHAR NOT NULL,
+  date_written DATE NOT NULL,
+  answerer_name VARCHAR NOT NULL,
+  answerer_email VARCHAR NOT NULL,
+  reported BOOLEAN NOT NULL,
+  helpful INTEGER NOT NULL
+);
+
+CREATE TABLE photos (
+  id SERIAL PRIMARY KEY,
+  answer_id INTEGER NOT NULL REFERENCES answers(id) ON DELETE CASCADE,
+  photo_url VARCHAR NOT NULL
+);
