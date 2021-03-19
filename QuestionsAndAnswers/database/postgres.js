@@ -13,7 +13,7 @@ const test = (callback) => {
     if (err) {
       return console.error(`Can't get client`, err);
     } else {
-      client.query('SELECT * FROM questions WHERE id < 4', (err, result) => {
+      client.query('select q.id AS question_id, q.body AS question_body, q.date_written AS question_date, q.asker_name, q.helpful AS question_helpfulness, q.reported, a.id, a.body, a.date_written AS date, a.answerer_name, a.helpful AS helpfulness, p.photo_url from questions q left join answers a on (q.id = a.question_id) left join photos p on (a.id = p.answer_id) where q.product_id = 1 order by q.id ASC', (err, result) => {
         release()
         if (err) {
           return callback(err, null);
@@ -25,6 +25,67 @@ const test = (callback) => {
   })
 }
 
+const getQuestions = (productId, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `select q.id AS question_id, q.body AS question_body, q.date_written AS question_date, q.asker_name, q.helpful AS question_helpfulness, q.reported, a.id, a.body, a.date_written AS date, a.answerer_name, a.helpful AS helpfulness, p.photo_url from questions q left join answers a on (q.id = a.question_id) left join photos p on (a.id = p.answer_id) where q.product_id = ${productId} order by q.id ASC`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const getAnswers = (questionId, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `SELECT * FROM answers WHERE question_id = ${questionId}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const getPhotos = (answerId, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `SELECT * FROM photos WHERE answer_id = ${answerId}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+
+
+
+
 module.exports = {
-  test
+  test,
+  getQuestions,
+  getAnswers,
+  getPhotos
 }
