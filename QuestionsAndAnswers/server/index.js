@@ -65,16 +65,92 @@ app.get('/qa/questions', (req, res) => {
   // })
 
   const memoizedQ = {};
-  const memoizeA = {};
+  const memoizedA = {};
 
   db.getQuestions(product_id, (err, data) => {
     if (err) {
       res.status(200).send(err);
     } else {
       data.forEach((datum) => {
-        console.log(datum);
+        const {
+          question_id,
+          question_body,
+          question_date,
+          asker_name,
+          question_helpfulness,
+          reported,
+          id,
+          body,
+          date,
+          answerer_name,
+          helpfulness,
+          answer_reported,
+          photo_url
+        } = datum;
+        //check if question_id is memoized
+        if (!memoizedQ.hasOwnProperty(question_id)) {
+          //reported?
+          if (reported) {
+            return;
+          }
+          //if not, start building
+          const questionObject = {
+            question_id,
+            question_body,
+            question_date,
+            asker_name,
+            question_helpfulness,
+            reported,
+            answers: {}
+          }
+          if (id) {
+            const answerObject = {
+              id,
+              body,
+              date,
+              answerer_name,
+              helpfulness,
+              photos: []
+            }
+            questionObject.answers[id] = answerObject;
+            memoizedA[id] = true;
+          }
+          if (photo_url) {
+            questionObject.answers[id].photos.push(photo_url);
+          }
+          //once built, push into the results array
+          returnObject.results.push(questionObject);
+          //memoize the question_id with the array index
+          memoizedQ[question_id] = returnObject.results.length - 1;
+        } else if (!memoizedA.hasOwnProperty(id)) {
+          if (answer_reported) {
+            return;
+          }
+          //if not, start building
+          const answerObject = {
+            id,
+            body,
+            date,
+            answerer_name,
+            helpfulness,
+            photos: []
+          }
+          if (photo_url) {
+            answerObject.photos.push(photo_url);
+          }
+
+          returnObject.results[memoizedQ[question_id]].answers[id] = answerObject;
+          memoizedA[id] = true;
+          //once built, place in the answers object
+          //memoize the answer id
+        } else if (photo_url) {
+          console.log(memoizedQ[question_id])
+          returnObject.results[memoizedQ[question_id]].answers[id].photos.push(photo_url);
+        }
+
       })
-      res.status(200).send(data);
+      // console.log(returnObject)
+      res.status(200).send(returnObject);
     }
   })
 
