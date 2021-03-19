@@ -48,7 +48,7 @@ const getAnswers = (questionId, callback) => {
     if (err) {
       return callback(err, null);
     } else {
-      const sql = `SELECT * FROM answers WHERE question_id = ${questionId}`;
+      const sql = `select a.id, a.body, a.date_written AS date, a.answerer_name, a.helpful AS helpfulness, a.reported AS answer_reported, p.photo_url, p.id AS photo_id from answers a left join photos p on (a.id = p.answer_id) where a.question_id = ${questionId} order by a.id ASC`;
       client.query(sql, (err, result) => {
         release();
         if (err) {

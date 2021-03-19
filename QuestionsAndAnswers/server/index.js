@@ -124,9 +124,81 @@ app.get('/qa/questions', (req, res) => {
 app.get('/qa/questions/:question_id/answers', (req, res) => {
   console.log('Serving GET request for answers to a question');
   const question_id = req.params.question_id;
-  const whichPage = req.query.page || 1;
-  const count = req.query.count || 5;
-  res.status(200).send('In progress')
+  const whichPage = Number(req.query.page) || 1;
+  const count = Number(req.query.count) || 5;
+
+  const returnObject = {
+    question: question_id,
+    page: whichPage,
+    count,
+    results: []
+  };
+
+  const memoizedA = {};
+
+  let countCheck = new Set;
+
+
+  db.getAnswers(question_id, (err, data) => {
+    if (err) {
+      console.log(err)
+      res.status(200).send(err);
+    } else {
+      data.forEach((datum) => {
+        const {
+          id,
+          body,
+          date,
+          answerer_name,
+          helpfulness,
+          answer_reported,
+          photo_url,
+          photo_id
+        } = datum;
+        if (!countCheck.has(id)) {
+          if (countCheck.size === count) {
+            return;
+          }
+          countCheck.add(id)
+        }
+
+        if (!memoizedA.hasOwnProperty(id)) {
+          if (answer_reported) {
+            return;
+          }
+          const answerObject = {
+            answer_id: id,
+            body,
+            date,
+            answerer_name,
+            helpfulness,
+            photos: []
+          }
+          if (photo_url) {
+            const photoObject = {
+              id: photo_id,
+              url: photo_url
+            }
+            answerObject.photos.push(photoObject);
+          }
+
+          returnObject.results.push(answerObject);
+          memoizedA[id] = returnObject.results.length - 1;
+        } else if (photo_url) {
+          const photoObject = {
+            id: photo_id,
+            url: photo_url
+          }
+          returnObject.results[memoizedA[id]].photos.push(photoObject);
+        }
+      })
+      console.log(returnObject);
+      res.status(200).send(returnObject);
+    }
+
+
+  })
+
 })
 
 app.post('/qa/questions', (req, res) => {
