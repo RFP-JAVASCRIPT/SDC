@@ -22,50 +22,16 @@ app.get('/qa/questions', (req, res) => {
   console.log('Serving GET request for questions');
   const product_id = req.query.product_id;
   const whichPage = req.query.page || 1;
-  const count = req.query.count || 5;
+  const count = Number(req.query.count) || 5;
 
   const returnObject = {
     product_id: product_id,
     results: []
   }
 
-  // db.getQuestions(product_id, (err, questions) => {
-  //   if (err) {
-  //     res.status(200).send(err);
-  //   } else {
-  //     questions.forEach((question) => {
-  //       const question_id = question.id;
-  //       question.answers = {};
-  //       returnObject.results.push(question)
-
-  //       db.getAnswers(question_id, (err, answers) => {
-  //         if (err) {
-  //           res.status(200).send(err);
-  //         } else {
-  //           answers.forEach((answer) => {
-  //             const answer_id = answer.id;
-  //             answer.photos = [];
-  //             question.answers[answer_id] = answer;
-
-  //             db.getPhotos(answer_id, (err, photos) => {
-  //               if (err) {
-  //                 res.status(200).send(err);
-  //               } else {
-  //                 photos.forEach((photo) => {
-  //                   answer.photos.push(photo.photo_url);
-  //                 })
-  //               }
-  //             })
-  //           })
-  //         }
-  //       })
-  //     })
-  //     setTimeout(() => res.status(200).send(returnObject), 2000);
-  //   }
-  // })
-
   const memoizedQ = {};
   const memoizedA = {};
+  let countCheck = new Set();
 
   db.getQuestions(product_id, (err, data) => {
     if (err) {
@@ -87,13 +53,16 @@ app.get('/qa/questions', (req, res) => {
           answer_reported,
           photo_url
         } = datum;
-        //check if question_id is memoized
+        if (!countCheck.has(question_id)) {
+          if (countCheck.size === count) {
+            return;
+          }
+          countCheck.add(question_id)
+        }
         if (!memoizedQ.hasOwnProperty(question_id)) {
-          //reported?
           if (reported) {
             return;
           }
-          //if not, start building
           const questionObject = {
             question_id,
             question_body,
@@ -118,15 +87,12 @@ app.get('/qa/questions', (req, res) => {
           if (photo_url) {
             questionObject.answers[id].photos.push(photo_url);
           }
-          //once built, push into the results array
           returnObject.results.push(questionObject);
-          //memoize the question_id with the array index
           memoizedQ[question_id] = returnObject.results.length - 1;
         } else if (!memoizedA.hasOwnProperty(id)) {
           if (answer_reported) {
             return;
           }
-          //if not, start building
           const answerObject = {
             id,
             body,
@@ -141,15 +107,11 @@ app.get('/qa/questions', (req, res) => {
 
           returnObject.results[memoizedQ[question_id]].answers[id] = answerObject;
           memoizedA[id] = true;
-          //once built, place in the answers object
-          //memoize the answer id
         } else if (photo_url) {
-          console.log(memoizedQ[question_id])
           returnObject.results[memoizedQ[question_id]].answers[id].photos.push(photo_url);
         }
 
       })
-      // console.log(returnObject)
       res.status(200).send(returnObject);
     }
   })
