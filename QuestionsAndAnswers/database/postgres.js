@@ -61,22 +61,38 @@ const getAnswers = (questionId, callback) => {
   })
 }
 
-const getPhotos = (answerId, callback) => {
+const postQuestion = (product_id, body, name, email, callback) => {
+  const date = new Date().toISOString();
   db.connect((err, client, release) => {
     if (err) {
-      return callback(err, null);
+      return console.log(err);
     } else {
-      const sql = `SELECT * FROM photos WHERE answer_id = ${answerId}`;
-      client.query(sql, (err, result) => {
+      client.query('select max(id) from questions', (err, result) => {
         release();
         if (err) {
-          return callback(err, null);
+          return console.log(err);
         } else {
-          return callback(null, result.rows);
+          const newId = result.rows[0].max + 1;
+          db.connect((err, client, release) => {
+            if (err) {
+              return callback(err, null);
+            } else {
+              const sql = `INSERT INTO questions (id, product_id, body, date_written, asker_name, asker_email, reported, helpful) values (${newId}, ${product_id}, '${body}', '${date}', '${name}', '${email}', FALSE, 0)`;
+              client.query(sql, (err, result) => {
+                release();
+                if (err) {
+                  return callback(err, null);
+                } else {
+                  return callback(null, result.rows);
+                }
+              })
+            }
+          })
         }
       })
     }
   })
+
 }
 
 
@@ -87,5 +103,5 @@ module.exports = {
   test,
   getQuestions,
   getAnswers,
-  getPhotos
+  postQuestion
 }

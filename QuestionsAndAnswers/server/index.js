@@ -206,8 +206,16 @@ app.post('/qa/questions', (req, res) => {
   const body = req.body.body;
   const name = req.body.name;
   const email = req.body.email;
-  const product_id = req.body.prodcut_id;
-  res.status(200).send('In progress');
+  const product_id = req.body.product_id;
+
+  db.postQuestion(product_id, body, name, email, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      res.status(200).send('Created');
+    }
+  })
 })
 
 app.post('/qa/questions/:question_id/answers', (req, res) => {
