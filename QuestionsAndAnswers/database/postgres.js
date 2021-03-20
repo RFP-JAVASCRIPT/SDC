@@ -65,36 +65,57 @@ const postQuestion = (product_id, body, name, email, callback) => {
   const date = new Date().toISOString();
   db.connect((err, client, release) => {
     if (err) {
-      return console.log(err);
+      return callback(err, null);
     } else {
-      client.query('select max(id) from questions', (err, result) => {
+      const sql = `INSERT INTO questions (product_id, body, date_written, asker_name, asker_email, reported, helpful) values (${product_id}, '${body}', '${date}', '${name}', '${email}', FALSE, 0)`;
+      client.query(sql, (err, result) => {
         release();
         if (err) {
-          return console.log(err);
+          return callback(err, null);
         } else {
-          const newId = result.rows[0].max + 1;
-          db.connect((err, client, release) => {
-            if (err) {
-              return callback(err, null);
-            } else {
-              const sql = `INSERT INTO questions (id, product_id, body, date_written, asker_name, asker_email, reported, helpful) values (${newId}, ${product_id}, '${body}', '${date}', '${name}', '${email}', FALSE, 0)`;
-              client.query(sql, (err, result) => {
-                release();
-                if (err) {
-                  return callback(err, null);
-                } else {
-                  return callback(null, result.rows);
-                }
-              })
-            }
-          })
+          return callback(null, result.rows);
         }
       })
     }
   })
-
 }
 
+const postAnswer = (question_id, body, name, email, callback) => {
+  const date = new Date().toISOString();
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) values (${question_id}, '${body}', '${date}', '${name}', '${email}', FALSE, 0) RETURNING id`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const postPhotos = (answer_id, photo_url, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `INSERT INTO photos (answer_id, photo_url) values (${answer_id}, '${photo_url}')`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
 
 
 
@@ -103,5 +124,7 @@ module.exports = {
   test,
   getQuestions,
   getAnswers,
-  postQuestion
+  postQuestion,
+  postAnswer,
+  postPhotos
 }

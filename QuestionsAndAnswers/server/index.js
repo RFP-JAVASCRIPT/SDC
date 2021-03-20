@@ -220,12 +220,35 @@ app.post('/qa/questions', (req, res) => {
 
 app.post('/qa/questions/:question_id/answers', (req, res) => {
   console.log('Serving POST request to add an answer');
-  const product_id = req.params.question_id;
+  const question_id = req.params.question_id;
   const body = req.body.body;
   const name = req.body.name;
   const email = req.body.email;
   const photos = req.body.photos;
-  res.status(200).send('In progress');
+
+  db.postAnswer(question_id, body, name, email, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      if (photos.length > 0) {
+        photos.forEach((photo) => {
+          db.postPhotos(data[0].id, photo, (err, data) => {
+            if (err) {
+              console.log(err);
+              res.status(200).send(err);
+            } else {
+              console.log('Photo stored in database')
+            }
+          })
+        })
+        res.status(200).send('Created');
+      } else {
+        res.status(200).send('Created');
+      }
+
+    }
+  })
 })
 
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
