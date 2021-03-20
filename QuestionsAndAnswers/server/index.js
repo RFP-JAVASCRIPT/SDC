@@ -253,26 +253,58 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
 
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
   console.log('Serving PUT request to mark a question helpful');
-  const product_id = req.params.question_id;
-  res.status(200).send('In progress');
+  const question_id = req.params.question_id;
+
+  db.putQuestionHelpful(question_id, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      res.status(204).end();
+    }
+  })
 })
 
 app.put('/qa/questions/:question_id/report', (req, res) => {
   console.log('Serving PUT request to report a question');
-  const product_id = req.params.question_id;
-  res.status(200).send('In progress');
+  const question_id = req.params.question_id;
+
+  db.putQuestionReport(question_id, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      res.status(204).end();
+    }
+  })
 })
 
 app.put('/qa/answers/:answer_id/helpful', (req, res) => {
   console.log('Serving PUT request to mark an answer helpful');
   const answer_id = req.params.answer_id;
-  res.status(200).send('In progress');
+
+  db.putAnswerHelpful(answer_id, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      res.status(204).end();
+    }
+  })
 })
 
 app.put('/qa/answers/:answer_id/report', (req, res) => {
   console.log('Serving PUT request to report an answer');
   const answer_id = req.params.answer_id;
-  res.status(200).send('In progress');
+
+  db.putAnswerReport(answer_id, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(200).send(err);
+    } else {
+      res.status(204).end();
+    }
+  })
 })
 
 

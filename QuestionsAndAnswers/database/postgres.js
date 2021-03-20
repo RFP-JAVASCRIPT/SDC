@@ -117,6 +117,78 @@ const postPhotos = (answer_id, photo_url, callback) => {
   })
 }
 
+const putQuestionHelpful = (question_id, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `UPDATE questions SET helpful = helpful+1 WHERE id = ${question_id}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const putQuestionReport = (question_id, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `UPDATE questions SET reported = TRUE WHERE id = ${question_id}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const putAnswerHelpful = (answer_id, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `UPDATE answers SET helpful = helpful+1 WHERE id = ${answer_id}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
+const putAnswerReport = (answer_id, callback) => {
+  db.connect((err, client, release) => {
+    if (err) {
+      return callback(err, null);
+    } else {
+      const sql = `UPDATE answers SET reported = TRUE WHERE id = ${answer_id}`;
+      client.query(sql, (err, result) => {
+        release();
+        if (err) {
+          return callback(err, null);
+        } else {
+          return callback(null, result.rows);
+        }
+      })
+    }
+  })
+}
+
 
 
 
@@ -126,5 +198,9 @@ module.exports = {
   getAnswers,
   postQuestion,
   postAnswer,
-  postPhotos
+  postPhotos,
+  putQuestionHelpful,
+  putQuestionReport,
+  putAnswerHelpful,
+  putAnswerReport
 }
